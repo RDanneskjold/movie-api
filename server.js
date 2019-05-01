@@ -22,11 +22,23 @@ app.use(function validateBearerToken(req, res, next) {
     next()
 })
 
-app.get('/movies', function handleGetMovie(req, res) {
+app.get('/movie', function handleGetMovie(req, res) {
     let response = MOVIES;
     const { name = "", genre, country, avg_vote } = req.query;
 
-    // filter our pokemon by name if name query param is present
+    
+    if(avg_vote) {
+        if(Number(avg_vote) < 0 || Number(avg_vote) > 10) {
+            res.status(400).json({ error: 'If included, avg_vote must be between 0 and 10'})
+        }
+        response = response.filter(movie => 
+            movie.avg_vote >= Number(avg_vote)
+        )
+        response.sort((a, b) => {
+            return a.avg_vote > b.avg_vote ? 1 : a.avg_vote < b.avg_vote ? -1 : 0;
+        })
+    }
+    
     if(name) {
         response = response.filter(movie =>
             movie.film_title.toLowerCase().includes(name.toLowerCase())
@@ -40,20 +52,12 @@ app.get('/movies', function handleGetMovie(req, res) {
     }
 
     if(country) {
+        country = country.replace(/\s+/g, '')
         response = response.filter(movie => 
-            movie.country.toLowerCase().includes(country.toLowerCase())
+           movie.country.toLowerCase().includes(country.toLowerCase())
         )
     }
 
-    if(avg_vote) {
-        console.log(typeof(Number(avg_vote)))
-        response = response.filter(movie => 
-            movie.avg_vote >= Number(avg_vote)
-        )
-        response.sort((a, b) => {
-            return a.avg_vote > b.avg_vote ? 1 : a.avg_vote < b.avg_vote ? -1 : 0;
-        })
-    }
 
     res.json(response)
 })
