@@ -52,9 +52,9 @@ app.get('/movie', function handleGetMovie(req, res) {
     }
 
     if(country) {
-        country = country.replace(/\s+/g, '')
+        let countrySearch = country.replace(/\s+/g, '')
         response = response.filter(movie => 
-           movie.country.toLowerCase().includes(country.toLowerCase())
+            movie.country.replace(/\s+/g, '').toLowerCase().includes(countrySearch.toLowerCase())
         )
     }
 
