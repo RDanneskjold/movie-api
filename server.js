@@ -6,15 +6,15 @@ const cors = require('cors')
 const helmet = require('helmet')
 
 const app = express()
+const morganSetting = process.env.NODE_ENV === 'production' ? 'tiny' : 'common'
 
-app.use(morgan('dev'))
+app.use(morgan(morganSetting))
 app.use(cors())
 app.use(helmet())
 
 app.use(function validateBearerToken(req, res, next) {
     const apiToken = process.env.API_TOKEN
     const authToken = req.get('Authorization')
-    console.log('validate bearer token middleware')
     
     if (!authToken || authToken.split(' ')[1] !== apiToken) {
         res.status(401).json({ error: 'Unauthorized Request'})
@@ -62,12 +62,17 @@ app.get('/movie', function handleGetMovie(req, res) {
     res.json(response)
 })
 
-const PORT = 8000
-
-app.listen(PORT, () => {
-    console.log(`Server listening at http://localhost:${PORT}`)
+app.use((error, req, res, next) => {
+    let response
+    if (process.env.NODE_ENV === 'production') {
+        response = { error: { message: 'server error' } }
+    } else {
+        response = { error }
+    }
+    res.status(500).json(response)
 })
 
-// export API_TOKEN=490c7188-6b7d-11e9-a923-1681be663d3e
+const PORT = process.env.PORT || 8000
 
-// echo $API_TOKEN
+app.listen(PORT, () => {
+})
